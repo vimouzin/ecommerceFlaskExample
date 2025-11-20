@@ -1,0 +1,64 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: "0.0.0.0:4318"
+      
+      
+        
+  hostmetrics: 
+    collection_interval: 10s
+    scrapers:
+      cpu:
+        metrics:
+          system.cpu.utilization:
+            enabled: true
+      memory:
+        metrics:
+          system.memory.utilization:
+            enabled: true
+      load: {}
+      disk: {}
+      filesystem:
+        metrics:
+          system.filesystem.utilization:
+            enabled: true
+      network: {}
+      paging:
+        metrics:
+          system.paging.utilization:
+            enabled: true
+      processes: {}
+
+
+processors:
+  resourcedetection:
+    detectors: [env, system]
+    system:
+      hostname_sources: ["os"]      
+
+exporters:
+  otlphttp:
+    endpoint: https://ingress.us-west-2.aws.dash0.com:443
+    headers:
+      Authorization: "your auth key"
+      Dash0-Dataset: "your dataset"
+      
+service:
+  extensions:
+
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [resourcedetection]
+      exporters: [otlphttp]
+
+    metrics:
+      receivers: [hostmetrics]
+      processors: [resourcedetection]
+      exporters: [otlphttp]
+
+    traces:
+      receivers: [otlp]
+      processors: [resourcedetection]
+      exporters: [otlphttp]
